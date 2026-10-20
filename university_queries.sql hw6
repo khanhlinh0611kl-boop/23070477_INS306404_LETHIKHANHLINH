@@ -1,0 +1,156 @@
+
+/* 
+ * ==============================================================================
+ * File Name: university_queries.sql
+ * Author: Le Thi Khanh Linh
+ * Student ID: 23070477
+ * Assignment: Bài tập về nhà 5 - Buổi học 05
+ * Date: 2026-10-07
+ * Description: Tập lệnh SQL chứa 10 truy vấn từ cơ bản đến nâng cao trên cơ sở 
+ *              dữ liệu Đăng ký Khóa học Đại học (university_db), kèm theo 
+ *              chú thích chi tiết và kết quả giả định mẫu.
+ * ==============================================================================
+ */
+/*
+ * Query 1: Basic Select - List All Students
+ * Description: Lấy tất cả các cột và tất cả các bản ghi từ bảng students để xem 
+ *              toàn bộ thông tin sinh viên hiện có trong hệ thống.
+ * Expected Output: Danh sách toàn bộ sinh viên với các thuộc tính id, name, gpa, v.v.
+*/
+SELECT * 
+FROM students;
+
+/*
+ * +----+------------------+--------+
+ * | id | name             | gpa    |
+ * +----+------------------+--------+
+ * |  1 | Nguyen Van An    | 3.50   |
+ * |  2 | Tran Thi Bich    | 3.80   |
+ * |  3 | Le Hoang Nam     | 2.90   |
+ * |  4 | Pham Thu Huong   | 3.20   |
+ * |  5 | Hoang Minh Tuan  | 3.65   |
+ * +----+------------------+--------+
+ * (5 rows)
+*/
+
+/*
+ * Query 2: Where Clause with Comparison
+ * Description: Lọc ra các sinh viên có điểm trung bình (gpa) lớn hơn 3.0 để tìm 
+ *              những sinh viên đạt loại khá trở lên.
+ * Expected Output: Danh sách sinh viên có GPA > 3.0.
+*/
+SELECT id, full_name, gpa 
+FROM students 
+WHERE gpa > 3.0;
+
+/*
+ * Query 3: Compound Conditions with AND / OR
+ * Description: Tìm các khóa học thuộc khoa có mã 1 và có số tín chỉ lớn hơn 
+ *              hoặc bằng 3 tín chỉ.
+ * Expected Output: Danh sách các môn học thuộc khoa 1 từ 3 tín chỉ trở lên.
+*/
+SELECT course_code, name, credits, department_id 
+FROM courses 
+WHERE department_id = 1 AND credits >= 3;
+
+/*
+ * Query 4: Sorting Results with ORDER BY
+ * Description: Liệt kê danh sách sinh viên sắp xếp theo tên (full_name) tăng dần từ A đến Z.
+ * Expected Output: Danh sách sinh viên được sắp xếp theo alphabet tên.
+*/
+SELECT id, student_code, full_name, gpa 
+FROM students 
+ORDER BY full_name ASC;
+
+/*
+ * Query 5: Limiting Results with LIMIT
+ * Description: Lấy ra top 3 sinh viên có điểm số (gpa) cao nhất trong trường.
+ * Expected Output: Bảng gồm 3 sinh viên có GPA cao nhất, sắp xếp giảm dần.
+*/
+SELECT id, student_code, full_name, gpa 
+FROM students 
+ORDER BY gpa DESC 
+LIMIT 3;
+
+/*
+ * Query 6: Pattern Matching with LIKE
+ * Description: Tìm kiếm các khóa học có tiêu đề (name) chứa từ "Cơ sở" 
+ *              hoặc bắt đầu bằng từ khóa cụ thể. Sử dụng bí danh AS cho cột kết quả.
+ * Expected Output: Danh sách các khóa học khớp mẫu tìm kiếm.
+*/
+SELECT 
+    course_code, 
+    name AS course_title 
+FROM courses 
+WHERE name LIKE '%Cơ sở%';
+
+/*
+ * Query 7: Aggregate Functions (COUNT and SUM)
+ * Description: Đếm tổng số lượng sinh viên hiện có trong bảng students và 
+ *              tính tổng số tín chỉ của tất cả các khóa học trong bảng courses.
+ * Expected Output: Một hàng kết quả chứa tổng số sinh viên và tổng số tín chỉ.
+*/
+SELECT 
+    (SELECT COUNT(*) FROM students) AS total_students,
+    (SELECT SUM(credits) FROM courses) AS total_credits_sum;
+
+    /*
+ * Query 8: Grouping and Filtering with GROUP BY & HAVING
+ * Description: Thống kê các khoa (department_id) có nhiều hơn hoặc bằng 2 khóa học.
+ * Expected Output: Danh sách mã khoa và số lượng khóa học tương ứng thỏa mãn điều kiện.
+*/
+SELECT 
+    department_id, 
+    COUNT(course_code) AS course_count 
+FROM courses 
+GROUP BY department_id 
+HAVING COUNT(course_code) >= 2;
+
+/*
+ * +---------------+--------------+
+ * | department_id | course_count |
+ * +---------------+--------------+
+ * |             1 |            2 |
+ * +---------------+--------------+
+ * (1 row)
+*/
+
+/*
+ * Query 9: Inner Join Between Two Tables
+ * Description: Kết hợp bảng courses và bảng instructors thông qua khóa ngoại 
+ *              để liệt kê mã khóa học, tên khóa học kèm theo ID giảng viên phụ trách.
+ * Expected Output: Danh sách khóa học và giảng viên giảng dạy.
+*/
+SELECT 
+    c.course_code,
+    c.name AS course_name, 
+    c.instructor_id
+FROM courses c
+JOIN instructors i ON c.instructor_id = i.id;
+
+/*
+ * +-------------+------------------------------+---------------+
+ * | course_code | course_name                  | instructor_id |
+ * +-------------+------------------------------+---------------+
+ * | INS3064     | Cơ sở dữ liệu                |             1 |
+ * | INT2210     | Cấu trúc dữ liệu và giải...  |             5 |
+ * | BUS2101     | Quản trị chiến lược          |             2 |
+ * +-------------+------------------------------+---------------+
+ * (3 rows)
+*/
+
+/*
+ * Query 10: Multi-table Join (Three or More Tables)
+ * Description: Kết hợp 3 bảng (enrollments, students, courses) để liệt kê chi tiết 
+ *              các lượt đăng ký bao gồm: họ tên sinh viên, tên khóa học, 
+ *              học kỳ (semester_id) và điểm số (score).
+ * Expected Output: Bảng chi tiết sinh viên đăng ký môn học và điểm số.
+*/
+SELECT 
+    s.full_name AS student_name,
+    c.name AS course_name,
+    e.semester_id,
+    e.score
+FROM enrollments e
+JOIN students s ON e.student_id = s.id
+JOIN courses c ON e.course_id = c.id;
